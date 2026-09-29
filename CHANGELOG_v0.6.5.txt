@@ -1,0 +1,65 @@
+MJ PLAYER v0.6.5 · RTX VIDEO
+
+OBJETIVO
+Primera etapa de video neuronal para MJ Player usando funciones que el
+motor mpv expone sobre Direct3D 11.
+
+RTX SUPER RESOLUTION
+- Nuevo selector en Imagen:
+  Off / Auto / Forzar
+- Usa:
+  d3d11vpp scaling-mode=nvidia
+- El filtro se activa solamente cuando:
+  * hay una GPU NVIDIA RTX detectada;
+  * la película realmente necesita ampliarse para ocupar el área de video;
+  * el modo no está apagado.
+
+ESCALA
+MJ Player calcula la relación entre la resolución de la película y el área
+de reproducción, y pide a d3d11vpp una escala intermedia.
+- PC Media: hasta 1.75x
+- PC Potente: hasta 2.0x
+- Nunca se activa si la fuente ya cubre la resolución de salida.
+
+MOTION²
+RTX VSR y Motion² pesado no se apilan por defecto.
+Motivo: Motion² 4–12 usa minterpolate/libavfilter y mezclarlo con frames
+D3D11 puede provocar transferencias GPU→CPU→GPU.
+
+Con:
+☑ Priorizar RTX sobre Motion² pesado
+
+cuando RTX VSR está activo, Motion² queda temporalmente en su modo liviano
+1–3. El slider guardado NO se modifica.
+
+Si se desactiva esa prioridad:
+Motion² 4–12 puede tomar prioridad y RTX queda pausado durante ese filtro.
+
+DETAIL
+Cuando RTX VSR está activo, el sharpen tradicional de Detail Boost se
+reduce para evitar sobreenfoque/halos. El valor elegido por el usuario no
+se modifica.
+
+RTX VIDEO HDR
+Opción experimental:
+☑ RTX Video HDR (SDR → HDR)
+
+Se agrega el filtro nvidia-true-hdr solamente para fuentes SDR.
+Debe usarse con:
+- GPU NVIDIA RTX compatible;
+- Windows HDR activo;
+- pantalla HDR.
+
+FALLBACK
+Si el mpv incluido o el controlador NVIDIA rechaza el filtro RTX:
+- se elimina automáticamente el filtro;
+- vuelve al renderizado normal;
+- el error queda visible en el estado RTX y en Diagnóstico.
+
+AUTOCROP
+La detección temporal de barras negras retira RTX VSR durante el análisis
+y lo restaura al finalizar para evitar incompatibilidades con cropdetect.
+
+NO ES DLSS 5
+No usa DLSS 5 de juegos. Es NVIDIA RTX Video Super Resolution a través del
+postprocesador D3D11 de mpv. Es la primera etapa de MJ Neural Video.
